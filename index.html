@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MASTER PQ Suite - Công cụ tính toán sóng hài & bù công suất</title>
+    <link rel="icon" type="image/png" href="icons/icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- Sticky Top Header -->
+      <header class="app-header">
+        <div class="header-container">
+          <div class="header-top">
+            <div class="brand-section">
+              <img class="brand-logo" src="icons/logo.png" alt="MASTER Logo" />
+              <div class="brand-text">
+                <h1 class="app-title">MASTER PQ Suite</h1>
+                <p class="app-subtitle">Hệ thống tính toán tụ bù, cuộn kháng & AHF/SVG hạ áp</p>
+              </div>
+            </div>
+            <div class="header-actions">
+              <button id="printReportBtn" class="btn btn-primary btn-print" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <span>In Báo Cáo</span>
+              </button>
+            </div>
+          </div>
+          <div class="header-bottom">
+            <div class="header-summary">
+              <div class="summary-item">
+                <span class="summary-label">THDi Dự Đoán</span>
+                <strong class="summary-value" id="summaryThdi">0%</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Bù Phản Kháng</span>
+                <strong class="summary-value" id="summaryCompensation">0 kVAr</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">AHF Đề Xuất</span>
+                <strong class="summary-value" id="summaryAhf">0 A</strong>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Giải Pháp Chính</span>
+                <strong class="summary-value" id="summaryPrimary">Chưa xác định</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Workspace -->
+      <div class="app-container">
+        <main class="workspace">
+          <form id="calculatorForm" class="calculator-form">
+            <div class="form-workspace">
+              <!-- Nhóm A: Thông tin dự án -->
+              <div class="panel card">
+                <div class="panel-heading">
+                  <span class="panel-icon">A</span>
+                  <div>
+                    <h2>Thông Tin Dự Án</h2>
+                    <p>Khai báo quy mô công trình và tính chất của tải phụ.</p>
+                  </div>
+                </div>
+                <div class="form-grid two-columns">
+                  <label class="field">
+                    <span>Tên dự án</span>
+                    <input id="projectName" name="projectName" type="text" placeholder="Ví dụ: Nhà máy nhựa ABC" />
+                  </label>
+                  <label class="field">
+                    <span>Loại công trình</span>
+                    <select id="buildingType" name="buildingType"></select>
+                  </label>
+                  <label class="field">
+                    <span>Mức độ quan trọng của tải</span>
+                    <select id="loadImportance" name="loadImportance"></select>
+                  </label>
+                  <div class="field readonly">
+                    <span>% THDi dự đoán ban đầu THDI(a)</span>
+                    <output id="thdiInitialOutput">0%</output>
+                  </div>
+                </div>
+                <div class="callout warning-light" id="importanceAdvice"></div>
+              </div>
+
+              <!-- Nhóm B: Thông số thiết kế -->
+              <div class="panel card">
+                <div class="panel-heading">
+                  <span class="panel-icon">B</span>
+                  <div>
+                    <h2>Thông Số Thiết Kế</h2>
+                    <p>Thiết lập chỉ tiêu chất lượng lưới điện và nguồn cung cấp phụ.</p>
+                  </div>
+                </div>
+                <div class="form-grid three-columns">
+                  <label class="field">
+                    <span>Tần số f (Hz)</span>
+                    <input id="frequency" name="frequency" type="number" min="0" step="1" value="50" />
+                  </label>
+                  <label class="field">
+                    <span>Điện áp hệ thống U (V)</span>
+                    <input id="voltage" name="voltage" type="number" min="0" step="1" value="400" />
+                  </label>
+                  <label class="field">
+                    <span>Sơ đồ điện</span>
+                    <select id="wiringDiagram" name="wiringDiagram">
+                      <option value="3P3W">3P3W</option>
+                      <option value="3P4W" selected>3P4W</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Công suất MBA S (kVA)</span>
+                    <input id="transformerPower" name="transformerPower" type="number" min="0" step="1" value="1000" />
+                  </label>
+                  <label class="field">
+                    <span>Uk% MBA</span>
+                    <input id="ukPercent" name="ukPercent" type="number" min="0" step="0.1" value="6" />
+                  </label>
+                  <label class="field">
+                    <span>Số MBA song song (n)</span>
+                    <input id="parallelTransformers" name="parallelTransformers" type="number" min="1" step="1" value="1" />
+                  </label>
+                  <label class="field">
+                    <span>Công suất tải P (kW)</span>
+                    <input id="activePower" name="activePower" type="number" min="0" step="1" value="800" />
+                  </label>
+                  <label class="field">
+                    <span>Hệ số sử dụng Ku</span>
+                    <input id="usageFactor" name="usageFactor" type="number" min="0" max="2" step="0.01" value="0.9" />
+                  </label>
+                  <label class="field">
+                    <span>Hệ số đồng thời Ks</span>
+                    <input id="coincidenceFactor" name="coincidenceFactor" type="number" min="0" max="2" step="0.01" value="0.85" />
+                  </label>
+                  <label class="field">
+                    <span>THDu mục tiêu (%)</span>
+                    <input id="thduTarget" name="thduTarget" type="number" min="0" step="0.1" value="5" />
+                  </label>
+                  <label class="field">
+                    <span>THDi mục tiêu (%)</span>
+                    <input id="thdiTarget" name="thdiTarget" type="number" min="0" step="0.1" value="8" />
+                  </label>
+                  <label class="field">
+                    <span>Cosφ trước bù (cos1)</span>
+                    <input id="cos1" name="cos1" type="number" min="0.1" max="1" step="0.01" value="0.82" />
+                  </label>
+                  <label class="field">
+                    <span>Cosφ mục tiêu sau bù (cos2)</span>
+                    <input id="cos2" name="cos2" type="number" min="0.1" max="1" step="0.01" value="0.97" />
+                  </label>
+                  <label class="field">
+                    <span>Phương pháp bù</span>
+                    <select id="compensationMethod" name="compensationMethod">
+                      <option value="centralized" selected>Bù tập trung</option>
+                      <option value="group">Bù nhóm</option>
+                      <option value="individual">Bù riêng lẻ</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Thời gian vận hành (giờ/ngày)</span>
+                    <input id="operationHours" name="operationHours" type="number" min="0" max="24" step="0.5" value="16" />
+                  </label>
+                  
+                  <!-- Generator Option -->
+                  <label class="field">
+                    <span>Có máy phát điện?</span>
+                    <select id="hasGenerator" name="hasGenerator">
+                      <option value="no" selected>Không</option>
+                      <option value="yes">Có</option>
+                    </select>
+                  </label>
+                  <label class="field" id="generatorPowerGroup">
+                    <span>Công suất máy phát (kVA)</span>
+                    <input id="generatorPower" name="generatorPower" type="number" min="0" step="1" value="0" />
+                  </label>
+                  
+                  <!-- Solar Option -->
+                  <label class="field">
+                    <span>Có Solar Inverter?</span>
+                    <select id="hasSolar" name="hasSolar">
+                      <option value="no" selected>Không</option>
+                      <option value="yes">Có</option>
+                    </select>
+                  </label>
+                  <label class="field" id="solarPowerGroup">
+                    <span>Công suất Solar Inverter (kW)</span>
+                    <input id="solarPower" name="solarPower" type="number" min="0" step="1" value="0" />
+                  </label>
+                </div>
+                <div class="note-list alert-list" id="designAlerts"></div>
+              </div>
+
+              <!-- Nhóm C: Cơ cấu nhóm tải -->
+              <div class="panel card">
+                <div class="panel-heading">
+                  <span class="panel-icon">C</span>
+                  <div>
+                    <h2>Thông Tin Cơ Cấu Tải Chi Tiết</h2>
+                    <p>Nhập công suất (kW) và hệ số đồng thời Ks của các nhóm tải để tính toán sóng hài chính xác.</p>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table class="load-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Nhóm tải</th>
+                        <th>P (kW)</th>
+                        <th>Hệ số Ks</th>
+                        <th>Tỷ lệ tải X (%)</th>
+                        <th>Dự đoán THDi (ci)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="loadTableBody"></tbody>
+                  </table>
+                </div>
+                
+                <div class="load-summary">
+                  <div class="summary-card">
+                    <span class="summary-card-label">Tổng công suất nhóm tải</span>
+                    <strong class="summary-card-value" id="totalDeclaredLoad">0 kW</strong>
+                  </div>
+                  <div class="summary-card">
+                    <span class="summary-card-label">THDi(c) từ cơ cấu tải</span>
+                    <strong class="summary-card-value" id="thdiFromLoads">0%</strong>
+                  </div>
+                  <div class="summary-card">
+                    <span class="summary-card-label">Kiểm tra tính hợp lệ</span>
+                    <strong class="summary-card-value badge valid" id="loadValidation">Hợp lệ</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nhóm D: Thông số nâng cao -->
+              <div class="panel card">
+                <div class="panel-heading">
+                  <span class="panel-icon">D</span>
+                  <div>
+                    <h2>Thông Số Nâng Cao &amp; Động</h2>
+                    <p>Khai báo độ lệch pha 1 pha, biên độ dao động tải và thiết lập dự phòng lọc hài AHF.</p>
+                  </div>
+                </div>
+                <div class="form-grid three-columns">
+                  <label class="field">
+                    <span>Công suất tải 1 pha (kW)</span>
+                    <input id="singlePhaseLoad" name="singlePhaseLoad" type="number" min="0" step="1" value="120" />
+                  </label>
+                  <label class="field">
+                    <span>Công suất tải tối đa Pmax (kW)</span>
+                    <input id="peakPower" name="peakPower" type="number" min="0" step="1" value="950" />
+                  </label>
+                  <label class="field">
+                    <span>Công suất tải tối thiểu Pmin (kW)</span>
+                    <input id="minPower" name="minPower" type="number" min="0" step="1" value="550" />
+                  </label>
+                  <label class="field">
+                    <span>Chu kỳ biến động tải T (giây)</span>
+                    <input id="variationTime" name="variationTime" type="number" min="0" step="0.1" value="8" />
+                  </label>
+                  <div class="field">
+                    <span class="field-label-wrapper">
+                      Hệ số dự phòng AHF (Kp)
+                      <span class="hint-trigger" title="Hệ số dự phòng an toàn cho bộ lọc AHF để chạy bền bỉ. Mức khuyến cáo phụ thuộc độ biến động tải và tầm quan trọng tải.">?</span>
+                    </span>
+                    <input id="reserveFactor" name="reserveFactor" type="number" min="1" max="2.5" step="0.01" value="1.25" />
+                    <span class="field-feedback" id="kpFeedback">Đề xuất: 1.20 - 1.35</span>
+                  </div>
+                  <div class="field readonly">
+                    <span>Biên độ biến động tải ΔP</span>
+                    <output id="deltaPowerOutput">0%</output>
+                  </div>
+                </div>
+                <div class="callout info-light" id="volatilityAdvice"></div>
+              </div>
+            </div>
+            
+            <!-- Sticky Results Sidebar -->
+            <aside class="results-sidebar">
+              <div class="sticky-inner">
+                <div class="panel results-panel card">
+                  <div class="panel-heading">
+                    <span class="panel-icon success">★</span>
+                    <div>
+                      <h2>Đề Xuất Kỹ Thuật</h2>
+                      <p>Khuyến nghị chi tiết cho tủ bù kháng, kháng detuned &amp; lọc sóng hài tích cực.</p>
+                    </div>
+                  </div>
+
+                  <div class="result-grid">
+                    <article class="result-card accent">
+                      <span class="result-card-title">Bù theo Cosφ (QSVG)</span>
+                      <strong class="result-card-value" id="reactiveCompensationOutput">0 kVAr</strong>
+                      <small class="result-card-desc" id="compensationMethodOutput">-</small>
+                    </article>
+                    <article class="result-card">
+                      <span class="result-card-title">Dải bù theo MBA (MVA)</span>
+                      <strong class="result-card-value" id="mvaCompensationRange">0 - 0 kVAr</strong>
+                      <small class="result-card-desc" id="mvaCompensationSelection">-</small>
+                    </article>
+                    <article class="result-card">
+                      <span class="result-card-title">Cuộn kháng Detuned</span>
+                      <strong class="result-card-value" id="reactorOutput">Chưa xác định</strong>
+                      <small class="result-card-desc" id="reactorReason">-</small>
+                    </article>
+                    <article class="result-card">
+                      <span class="result-card-title">Dung lượng bộ lọc AHF</span>
+                      <strong class="result-card-value" id="ahfOutput">0 A</strong>
+                      <small class="result-card-desc" id="ahfReason">-</small>
+                    </article>
+                    <article class="result-card">
+                      <span class="result-card-title">Dung lượng SVG đề xuất</span>
+                      <strong class="result-card-value" id="svgOutput">0 kVAr</strong>
+                      <small class="result-card-desc" id="svgReason">-</small>
+                    </article>
+                    <article class="result-card">
+                      <span class="result-card-title">Đánh giá dao động tải</span>
+                      <strong class="result-card-value" id="volatilityLevelOutput">Ổn định</strong>
+                      <small class="result-card-desc" id="kpRangeOutput">Kp tham chiếu: -</small>
+                    </article>
+                  </div>
+
+                  <!-- Dynamic Equipment Specifications -->
+                  <div class="specs-section">
+                    <h3 class="specs-title">Thông Số Thiết Bị Khuyến Nghị</h3>
+                    <div class="specs-list" id="specsOutputGrid">
+                      <!-- App.js will render details dynamically -->
+                    </div>
+                  </div>
+
+                  <!-- Operational Advice -->
+                  <div class="recommendations-container">
+                    <div class="rec-block">
+                      <h4 class="rec-title">Giải pháp &amp; Khuyến nghị chính</h4>
+                      <ul id="mainRecommendations" class="rec-list"></ul>
+                    </div>
+                    <div class="rec-block warnings-block">
+                      <h4 class="rec-title text-danger">Cảnh báo kỹ thuật vận hành</h4>
+                      <ul id="technicalWarnings" class="rec-list warnings"></ul>
+                    </div>
+                  </div>
+
+                  <div class="compliance-footer">
+                    <p>Phần mềm áp dụng cho hệ thống hạ áp dưới 10.5kV. Xây dựng dựa trên các tiêu chuẩn IEC 61000, IEC 62586, IEEE 519, IEEE 1459, EN 50160. Kết quả có giá trị tham khảo thiết kế sơ bộ.</p>
+                    <p class="copyright">Bản quyền © 2026 MASTER VIỆT NAM. Bảo lưu mọi quyền.</p>
+                  </div>
+                </div>
+              </div>
+            </aside>
+          </form>
+        </main>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
