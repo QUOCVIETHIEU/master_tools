@@ -652,6 +652,32 @@ function collectCurrentReport(data) {
   };
 }
 
+function buildActiveLoadItems(report) {
+  return [
+    { name: "Động cơ chạy trực tiếp", pct: report.input.motorDirectPct },
+    { name: "Biến tần VFD", pct: report.input.vfdPct },
+    { name: "UPS", pct: report.input.upsPct },
+    { name: "LED / SMPS / Server", pct: report.input.ledPct },
+    { name: "Chiller / AHU / Bơm / Quạt", pct: report.input.hvacPct },
+    { name: "Chỉnh lưu AC/DC", pct: report.input.rectifierPct },
+    { name: "Máy hàn", pct: report.input.weldingPct },
+    { name: "Lò nhiệt / lò cảm ứng", pct: report.input.furnacePct },
+    { name: "Tải 1 pha trên tổng tải", pct: report.input.singlePhasePct }
+  ].filter((item) => item.pct > 0);
+}
+
+function buildNarrativeParagraphs(report) {
+  return [
+    `Dự án ${report.projectName} thuộc ${report.importance.label}, với mục tiêu THDu ${formatNumber(report.targetThdu, 0, "%")} và THDi ${formatNumber(report.targetThdi, 0, "%")}.`,
+    `Cơ cấu tải hiện tại cho thấy THDi(c) ước tính ${formatNumber(report.nonlinearPct, 1, "%")}; dung lượng bù tham chiếu khoảng ${formatNumber(report.totalKvar, 1, "kVAr")}.`,
+    `Dòng tải tính toán khoảng ${formatNumber(report.ilA, 1, "A")}, dòng ngắn mạch Isc khoảng ${formatNumber(report.iscKa, 1, "kA")}, THDu tham chiếu khoảng ${formatNumber(report.thdu, 1, "%")}.`,
+    `Giải pháp hiện nghiêng về ${report.solution}; cấu hình ưu tiên ${report.capModel}.`,
+    report.ahfNeeded
+      ? `Khuyến nghị sơ bộ AHF ${formatNumber(report.ahf.recommendedA, 1, "A")} tương ứng khoảng ${formatNumber(report.ahf.recommendedKva, 1, "kVA")}.`
+      : "Hiện chưa bắt buộc AHF, tuy nhiên vẫn nên đo kiểm chất lượng điện năng sau khi công trình đi vào vận hành."
+  ];
+}
+
 async function exportWord() {
   if (!latestReport) {
     showExportIssues("word");
@@ -679,17 +705,7 @@ async function exportWord() {
       console.warn("Could not load report icon for Word export:", assetError);
     }
 
-    const activeLoads = [
-      { name: "Động cơ chạy trực tiếp", pct: latestReport.input.motorDirectPct },
-      { name: "Biến tần VFD", pct: latestReport.input.vfdPct },
-      { name: "UPS", pct: latestReport.input.upsPct },
-      { name: "LED / SMPS / Server", pct: latestReport.input.ledPct },
-      { name: "Chiller / AHU / Bơm / Quạt", pct: latestReport.input.hvacPct },
-      { name: "Chỉnh lưu AC/DC", pct: latestReport.input.rectifierPct },
-      { name: "Máy hàn", pct: latestReport.input.weldingPct },
-      { name: "Lò nhiệt / lò cảm ứng", pct: latestReport.input.furnacePct },
-      { name: "Tải 1 pha trên tổng tải", pct: latestReport.input.singlePhasePct }
-    ].filter((item) => item.pct > 0);
+    const activeLoads = buildActiveLoadItems(latestReport);
 
     const loadRowsHtml = activeLoads
       .map((item) => `
@@ -727,15 +743,7 @@ async function exportWord() {
       .map((item) => `<li>${escapeHtml(item)}</li>`)
       .join("");
 
-    const narrativeText = [
-      `Dự án ${latestReport.projectName} thuộc ${latestReport.importance.label}, với mục tiêu THDu ${formatNumber(latestReport.targetThdu, 0, "%")} và THDi ${formatNumber(latestReport.targetThdi, 0, "%")}.`,
-      `Cơ cấu tải hiện tại cho thấy THDi(c) ước tính ${formatNumber(latestReport.nonlinearPct, 1, "%")}; dung lượng bù tham chiếu khoảng ${formatNumber(latestReport.totalKvar, 1, "kVAr")}.`,
-      `Dòng tải tính toán khoảng ${formatNumber(latestReport.ilA, 1, "A")}, dòng ngắn mạch Isc khoảng ${formatNumber(latestReport.iscKa, 1, "kA")}, THDu tham chiếu khoảng ${formatNumber(latestReport.thdu, 1, "%")}.`,
-      `Giải pháp hiện nghiêng về ${latestReport.solution}; cấu hình ưu tiên ${latestReport.capModel}.`,
-      latestReport.ahfNeeded
-        ? `Khuyến nghị sơ bộ AHF ${formatNumber(latestReport.ahf.recommendedA, 1, "A")} tương ứng khoảng ${formatNumber(latestReport.ahf.recommendedKva, 1, "kVA")}.`
-        : "Hiện chưa bắt buộc AHF, tuy nhiên vẫn nên đo kiểm chất lượng điện năng sau khi công trình đi vào vận hành."
-    ];
+    const narrativeText = buildNarrativeParagraphs(latestReport);
 
     const narrativeHtml = narrativeText
       .map((paragraph) => `<p class="narrative-p">${escapeHtml(paragraph)}</p>`)
@@ -1062,7 +1070,48 @@ async function exportPdf() {
     doc.setFont(doc.getFont().fontName, "bold");
     doc.setFontSize(10);
     doc.setTextColor(15, 108, 92);
-    doc.text(hasMontserrat ? "II. KẾT QUẢ ĐÁNH GIÁ & ĐỀ XUẤT THIẾT BỊ" : "II. Kết Quả Đánh Giá & Đề Xuất Thiết Bị", 20, yPos + 2);
+    doc.text(hasMontserrat ? "II. CƠ CẤU TẢI CHI TIẾT & CHỈ SỐ PHI TUYẾN" : "II. Co Cau Tai Chi Tiet & Chi So Phi Tuyen", 20, yPos + 2);
+    yPos += 7;
+
+    const activeLoads = buildActiveLoadItems(latestReport);
+    const tableRows = activeLoads.length
+      ? activeLoads
+      : [{ name: "Không có nhóm tải được khai báo", pct: 0 }];
+
+    doc.setFillColor(241, 245, 249);
+    doc.rect(20, yPos, 170, 7, "F");
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.2);
+    doc.rect(20, yPos, 170, 7, "S");
+    doc.setFont(doc.getFont().fontName, "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(51, 65, 85);
+    doc.text(hasMontserrat ? "Tên nhóm phụ tải" : "Ten nhom phu tai", 23, yPos + 4.6);
+    doc.text(hasMontserrat ? "Tỷ lệ khai báo" : "Ty le khai bao", 185, yPos + 4.6, { align: "right" });
+    yPos += 7;
+
+    tableRows.forEach((item, index) => {
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, yPos, 170, 6.5, "F");
+      }
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.15);
+      doc.rect(20, yPos, 170, 6.5, "S");
+      doc.setFont(doc.getFont().fontName, "normal");
+      doc.setFontSize(8.3);
+      doc.setTextColor(30, 41, 59);
+      doc.text(hasMontserrat ? item.name : convertVietnameseAccents(item.name), 23, yPos + 4.2);
+      doc.text(formatNumber(item.pct, 1, "%"), 185, yPos + 4.2, { align: "right" });
+      yPos += 6.5;
+    });
+
+    yPos += 4;
+
+    doc.setFont(doc.getFont().fontName, "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(15, 108, 92);
+    doc.text(hasMontserrat ? "III. KẾT QUẢ ĐÁNH GIÁ & ĐỀ XUẤT THIẾT BỊ" : "III. Ket Qua Danh Gia & De Xuat Thiet Bi", 20, yPos + 2);
     yPos += 7;
 
     const accentHarmonics = latestReport.thdi > 40 ? [194, 65, 12] : (latestReport.thdi > 25 ? [183, 121, 31] : [19, 121, 91]);
@@ -1096,18 +1145,12 @@ async function exportPdf() {
     doc.setFont(doc.getFont().fontName, "bold");
     doc.setFontSize(10);
     doc.setTextColor(15, 108, 92);
-    doc.text(hasMontserrat ? "III. ĐÁNH GIÁ CHI TIẾT HỆ THỐNG" : "III. Đánh Giá Chi Tiết Hệ Thống", 20, yPage2);
+    doc.text(hasMontserrat ? "IV. ĐÁNH GIÁ CHI TIẾT HỆ THỐNG" : "IV. Danh Gia Chi Tiet He Thong", 20, yPage2);
     yPage2 += 6;
     doc.setFont(doc.getFont().fontName, "normal");
     doc.setFontSize(9.5);
     doc.setTextColor(30, 41, 59);
-    const narrativeText = [
-      `Dự án ${latestReport.projectName} thuộc ${latestReport.importance.label}, mục tiêu THDu ${formatNumber(latestReport.targetThdu, 0, "%")} và THDi ${formatNumber(latestReport.targetThdi, 0, "%")}.`,
-      `THDi(c) dự đoán ở mức ${formatNumber(latestReport.nonlinearPct, 1, "%")} với dung lượng bù tham chiếu ${formatNumber(latestReport.totalKvar, 1, "kVAr")}.`,
-      `Dòng tải ước tính ${formatNumber(latestReport.ilA, 1, "A")}, Isc ước tính ${formatNumber(latestReport.iscKa, 1, "kA")}, THDu ước tính ${formatNumber(latestReport.thdu, 1, "%")}.`,
-      `Giải pháp hiện nghiêng về ${latestReport.solution}; ưu tiên cấu hình ${latestReport.capModel}.`,
-      latestReport.ahfNeeded ? `Nên cân nhắc AHF sơ bộ ${formatNumber(latestReport.ahf.recommendedA, 1, "A")} tương ứng ${formatNumber(latestReport.ahf.recommendedKva, 1, "kVA")}.` : "Hiện chưa bắt buộc AHF, nhưng vẫn nên đo chất lượng điện năng khi công trình vận hành."
-    ];
+    const narrativeText = buildNarrativeParagraphs(latestReport);
     narrativeText.forEach((para) => {
       const wrapped = doc.splitTextToSize(hasMontserrat ? para : convertVietnameseAccents(para), 170);
       doc.text(wrapped, 20, yPage2);
@@ -1118,7 +1161,23 @@ async function exportPdf() {
     doc.setFont(doc.getFont().fontName, "bold");
     doc.setFontSize(10);
     doc.setTextColor(15, 108, 92);
-    doc.text(hasMontserrat ? "IV. CẢNH BÁO KỸ THUẬT & KHUYẾN NGHỊ" : "IV. Cảnh Báo Kỹ Thuật & Khuyến Nghị", 20, yPage2);
+    doc.text(hasMontserrat ? "V. KHUYẾN NGHỊ VẬN HÀNH" : "V. Khuyen Nghi Van Hanh", 20, yPage2);
+    yPage2 += 6;
+    doc.setFont(doc.getFont().fontName, "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(30, 41, 59);
+    latestReport.recommendations.forEach((item) => {
+      const line = `- ${item}`;
+      const wrapped = doc.splitTextToSize(hasMontserrat ? line : convertVietnameseAccents(line), 167);
+      doc.text(wrapped, 22, yPage2);
+      yPage2 += wrapped.length * 4.6 + 0.8;
+    });
+
+    yPage2 += 2;
+    doc.setFont(doc.getFont().fontName, "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(15, 108, 92);
+    doc.text(hasMontserrat ? "VI. CẢNH BÁO KỸ THUẬT & KHUYẾN NGHỊ" : "VI. Canh Bao Ky Thuat & Khuyen Nghi", 20, yPage2);
     yPage2 += 6;
 
     latestReport.warningObjects.forEach((warning) => {
@@ -1155,7 +1214,7 @@ async function exportPdf() {
     doc.setFont(doc.getFont().fontName, "bold");
     doc.setFontSize(10);
     doc.setTextColor(15, 108, 92);
-    doc.text(hasMontserrat ? "V. THÀNH PHẦN SÓNG HÀI ĐẶC TRƯNG" : "V. Thành Phần Sóng Hài Đặc Trưng", 20, yPage2);
+    doc.text(hasMontserrat ? "VII. THÀNH PHẦN SÓNG HÀI ĐẶC TRƯNG" : "VII. Thanh Phan Song Hai Dac Trung", 20, yPage2);
     yPage2 += 6;
     doc.setFont(doc.getFont().fontName, "normal");
     doc.setFontSize(9);
