@@ -447,13 +447,19 @@ function updateCalculation() {
   
   // Show interactive validation state instead of silently overwriting user inputs
   const reserveFactorInput = getValue("reserveFactor");
-  const kpFeedback = document.getElementById("kpFeedback");
-  kpFeedback.textContent = `Đề xuất: ${formatNumber(minKp)} - ${formatNumber(maxKp)}`;
-  if (reserveFactorInput < minKp || reserveFactorInput > maxKp) {
-    kpFeedback.classList.add("warn");
-    kpFeedback.textContent += ` (Ngoài đề xuất)`;
-  } else {
-    kpFeedback.classList.remove("warn");
+  const kpTooltip = document.getElementById("kpTooltip");
+  const reserveFactorEl = elements.reserveFactor;
+
+  if (kpTooltip) {
+    let tooltipText = `Hệ số dự phòng an toàn cho bộ lọc AHF để chạy bền bỉ. `;
+    if (reserveFactorInput < minKp || reserveFactorInput > maxKp) {
+      tooltipText += `(Khuyến cáo: ${formatNumber(minKp)} - ${formatNumber(maxKp)} - Ngoài đề xuất)`;
+      if (reserveFactorEl) reserveFactorEl.classList.add("warn");
+    } else {
+      tooltipText += `(Đề xuất: ${formatNumber(minKp)} - ${formatNumber(maxKp)})`;
+      if (reserveFactorEl) reserveFactorEl.classList.remove("warn");
+    }
+    kpTooltip.setAttribute("title", tooltipText);
   }
 
   const reserveFactor = getValue("reserveFactor");
@@ -587,7 +593,9 @@ function init() {
     "compensationMethod",
     "wiringDiagram",
     "frequency",
-    "specsOutputGrid"
+    "specsOutputGrid",
+    "recalculateBtn",
+    "kpTooltip"
   ].forEach((id) => {
     elements[id] = document.getElementById(id);
   });
@@ -603,6 +611,40 @@ function init() {
   form.addEventListener("input", updateCalculation);
   form.addEventListener("change", updateCalculation);
   elements.printReportBtn.addEventListener("click", () => window.print());
+
+  elements.recalculateBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    updateCalculation();
+    const btn = elements.recalculateBtn;
+    btn.classList.add("calculating");
+    setTimeout(() => btn.classList.remove("calculating"), 500);
+  });
+
+  elements.kpTooltip.addEventListener("click", (e) => {
+    e.preventDefault();
+    const reserveFactorInput = getValue("reserveFactor");
+    const building = buildingTypeOptions.find((item) => item.value === elements.buildingType.value);
+    const importance = loadImportanceOptions.find((item) => item.value === elements.loadImportance.value);
+    
+    const activePower = getValue("activePower");
+    const peakPower = getValue("peakPower");
+    const minPower = getValue("minPower");
+    const deltaPPercent = activePower > 0 ? ((peakPower - minPower) / activePower) * 100 : 0;
+    const variationTime = getValue("variationTime");
+    const volatility = classifyVolatility(deltaPPercent, variationTime);
+    
+    const suggestedKpRange = getSuggestedKpRange(volatility.level, importance.value, building.value);
+    const minKp = suggestedKpRange[0];
+    const maxKp = suggestedKpRange[1];
+
+    let message = "Hệ số dự phòng an toàn cho bộ lọc AHF để chạy bền bỉ.\n\n";
+    if (reserveFactorInput < minKp || reserveFactorInput > maxKp) {
+      message += `(Khuyến cáo: ${formatNumber(minKp)} - ${formatNumber(maxKp)} - Ngoài đề xuất)`;
+    } else {
+      message += `(Đề xuất: ${formatNumber(minKp)} - ${formatNumber(maxKp)})`;
+    }
+    alert(message);
+  });
 
   updateCalculation();
 }

@@ -437,6 +437,23 @@ body {
   background: var(--bg-surface);
 }
 
+.field input.warn,
+.field select.warn {
+  border-color: var(--amber);
+  background-color: rgba(180, 83, 9, 0.02);
+}
+
+.field input.warn:hover,
+.field select.warn:hover {
+  border-color: var(--amber);
+}
+
+.field input.warn:focus,
+.field select.warn:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px var(--amber-glow);
+}
+
 .readonly output {
   display: flex;
   align-items: center;
@@ -449,8 +466,9 @@ body {
 .field-feedback {
   font-size: 0.75rem;
   color: var(--brand-primary);
-  margin-top: 4px;
-  display: block;
+  margin-left: 6px;
+  display: inline-block;
+  font-weight: 500;
 }
 
 .field-feedback.warn {
@@ -556,6 +574,21 @@ body {
 
 .btn-print {
   font-weight: 700;
+}
+
+.btn-recalculate {
+  width: 100%;
+  margin-bottom: 12px;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.btn-recalculate svg {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-recalculate.calculating svg {
+  transform: rotate(360deg);
 }
 
 .tab-actions {

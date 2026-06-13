@@ -67,7 +67,7 @@
                 <div class="form-grid two-columns">
                   <label class="field">
                     <span>Tên dự án</span>
-                    <input id="projectName" name="projectName" type="text" placeholder="Ví dụ: Nhà máy nhựa ABC" />
+                    <input id="projectName" name="projectName" type="text" placeholder="Ví dụ: Nhà máy nhựa ABC" value="TLP tính toán tụ bù, cuộn kháng & AHF/SVG hạ áp" />
                   </label>
                   <label class="field">
                     <span>Loại công trình</span>
@@ -261,11 +261,10 @@
                   </label>
                   <div class="field">
                     <span class="field-label-wrapper">
-                      Hệ số dự phòng AHF (Kp)
-                      <span class="hint-trigger" title="Hệ số dự phòng an toàn cho bộ lọc AHF để chạy bền bỉ. Mức khuyến cáo phụ thuộc độ biến động tải và tầm quan trọng tải.">?</span>
+                      <span>Hệ số dự phòng AHF (Kp)</span>
+                      <span class="hint-trigger" id="kpTooltip" title="Hệ số dự phòng an toàn cho bộ lọc AHF để chạy bền bỉ.">?</span>
                     </span>
                     <input id="reserveFactor" name="reserveFactor" type="number" min="1" max="2.5" step="0.01" value="1.25" />
-                    <span class="field-feedback" id="kpFeedback">Đề xuất: 1.20 - 1.35</span>
                   </div>
                   <div class="field readonly">
                     <span>Biên độ biến động tải ΔP</span>
@@ -287,6 +286,11 @@
                       <p>Khuyến nghị chi tiết cho tủ bù kháng, kháng detuned &amp; lọc sóng hài tích cực.</p>
                     </div>
                   </div>
+
+                  <button id="recalculateBtn" class="btn btn-secondary btn-recalculate" type="button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                    <span>Tính Toán Lại</span>
+                  </button>
 
                   <div class="result-grid">
                     <article class="result-card accent">
