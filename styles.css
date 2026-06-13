@@ -484,6 +484,10 @@ body {
   line-height: 1.6;
 }
 
+.callout[hidden] {
+  display: none;
+}
+
 .warning-light {
   background: rgba(180, 83, 9, 0.05);
   border: 1px solid rgba(180, 83, 9, 0.15);
@@ -538,6 +542,13 @@ body {
   transition: var(--transition-smooth);
 }
 
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 .btn-primary {
   background: var(--brand-primary);
   color: #ffffff;
@@ -574,21 +585,6 @@ body {
 
 .btn-print {
   font-weight: 700;
-}
-
-.btn-recalculate {
-  width: 100%;
-  margin-bottom: 12px;
-  justify-content: center;
-  font-weight: 700;
-}
-
-.btn-recalculate svg {
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-recalculate.calculating svg {
-  transform: rotate(360deg);
 }
 
 .tab-actions {
@@ -728,6 +724,58 @@ body {
   flex-direction: column;
   gap: 20px;
   min-height: 100%;
+}
+
+.report-status {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  padding: 14px 16px;
+  background: var(--bg-surface-secondary);
+}
+
+.report-status[hidden] {
+  display: none;
+}
+
+.report-status__title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.report-status__list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink-secondary);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.report-status--ready {
+  background: #ecfbf5;
+  border-color: rgba(15, 118, 110, 0.2);
+}
+
+.report-status--ready .report-status__title {
+  color: var(--emerald);
+}
+
+.report-status--pending {
+  background: #fff9e8;
+  border-color: rgba(180, 83, 9, 0.2);
+}
+
+.report-status--pending .report-status__title {
+  color: var(--amber);
+}
+
+.report-status--error {
+  background: #fff1ec;
+  border-color: rgba(185, 28, 28, 0.2);
+}
+
+.report-status--error .report-status__title {
+  color: var(--crimson);
 }
 
 .result-grid {
@@ -1102,6 +1150,25 @@ body {
   }
   
   .rec-list li::before {
+    color: #000000 !important;
+  }
+  
+  .spec-name {
+    color: #000000 !important;
+  }
+  
+  .spec-value {
+    background: #f1f5f9 !important;
+    border: 1px solid #cccccc !important;
+    color: #000000 !important;
+  }
+  
+  .callout {
+    border: 1px solid #cccccc !important;
+    background: #fcfcfc !important;
+    color: #000000 !important;
+  }
+}
     color: #000000 !important;
   }
   

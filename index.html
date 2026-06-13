@@ -21,6 +21,14 @@
               </div>
             </div>
             <div class="header-actions">
+              <button id="exportPdfButton" class="btn btn-secondary" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17V3"></path><path d="m6 11 6 6 6-6"></path><path d="M19 21H5"></path></svg>
+                <span>Xuất PDF</span>
+              </button>
+              <button id="exportWordButton" class="btn btn-outline" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="m8 13 2 4 2-4 2 4 2-4"></path></svg>
+                <span>Xuất Word</span>
+              </button>
               <button id="printReportBtn" class="btn btn-primary btn-print" type="button">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                 <span>In Báo Cáo</span>
@@ -67,7 +75,7 @@
                 <div class="form-grid two-columns">
                   <label class="field">
                     <span>Tên dự án</span>
-                    <input id="projectName" name="projectName" type="text" placeholder="Ví dụ: Nhà máy nhựa ABC" value="TLP tính toán tụ bù, cuộn kháng & AHF/SVG hạ áp" />
+                    <input id="projectName" name="projectName" type="text" placeholder="Ví dụ: Nhà máy nhựa ABC" />
                   </label>
                   <label class="field">
                     <span>Loại công trình</span>
@@ -271,7 +279,7 @@
                     <output id="deltaPowerOutput">0%</output>
                   </div>
                 </div>
-                <div class="callout info-light" id="volatilityAdvice"></div>
+                <div class="callout info-light" id="volatilityAdvice" hidden></div>
               </div>
             </div>
             
@@ -287,10 +295,12 @@
                     </div>
                   </div>
 
-                  <button id="recalculateBtn" class="btn btn-secondary btn-recalculate" type="button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-                    <span>Tính Toán Lại</span>
-                  </button>
+                  <div id="reportStatusBanner" class="report-status report-status--pending">
+                    <div class="report-status__title">Báo cáo chưa sẵn sàng để xuất</div>
+                    <ul id="reportStatusList" class="report-status__list">
+                      <li>Hệ thống đang kiểm tra dữ liệu đầu vào.</li>
+                    </ul>
+                  </div>
 
                   <div class="result-grid">
                     <article class="result-card accent">
@@ -357,6 +367,7 @@
       </div>
     </div>
 
+    <script src="vendor/jspdf.umd.min.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
